@@ -1,0 +1,26 @@
+node{
+    properties([buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '5', daysToKeepStr: '', numToKeepStr: '5')), 
+    pipelineTriggers([pollSCM('* * * * *')])])
+    def mavenHome = tool name : "maven3.8.2"
+    stage('checkout')
+    {
+        git branch: 'development', credentialsId: 'a21af540-7457-4cf0-aff7-cee0b191fde9', url: 'https://github.com/vijaytechnologies-ec-applications/flipkart2.git'
+    }
+    stage('build')
+    {
+    sh "${mavenHome}/bin/mvn clean package"
+    }
+    stage('UploadArtifactsIntoNexus'){
+        sh "${mavenHome}/bin/mvn deploy"
+    }
+    stage('DeployAppIntoTomcatServer'){
+        sshagent(['0f0be29e-3f99-44d8-8d89-7d39a9ac8781']){
+        sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@52.14.176.225://opt/apache-tomcat-9.0.52/webapps/"
+        }
+    }
+    stage('EmailNotification'){
+        emailext body: '''Build is over
+        Regards
+        Vijay''', subject: 'Build is over', to: 'munagalavijay9@gmail.com'
+    }
+}
