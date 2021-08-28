@@ -10,9 +10,9 @@ node{
     {
     sh "${mavenHome}/bin/mvn clean package"
     }
-    stage('UploadArtifactsIntoNexus'){
+    /* stage('UploadArtifactsIntoNexus'){
         sh "${mavenHome}/bin/mvn deploy"
-    }
+    } */
     stage('DeployAppIntoTomcatServer'){
         sshagent(['0f0be29e-3f99-44d8-8d89-7d39a9ac8781']){
         sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@52.14.176.225://opt/apache-tomcat-9.0.52/webapps/"
